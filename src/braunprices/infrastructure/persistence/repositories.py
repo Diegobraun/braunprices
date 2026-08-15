@@ -8,13 +8,14 @@ from collections.abc import Iterable, Sequence
 from datetime import date
 from uuid import UUID
 
-from sqlalchemy import Connection, delete, select
+from sqlalchemy import Connection, delete, select, tuple_
 from sqlalchemy.dialects.postgresql import insert as postgres_insert
 
 from braunprices.domain.model.price_observation import PriceObservation
 from braunprices.domain.model.product import Product, StoreListing
 from braunprices.domain.model.store import Store
 from braunprices.domain.value_objects.ean import EAN
+from braunprices.domain.value_objects.observation_cursor import ObservationCursor
 from braunprices.domain.value_objects.store_slug import StoreSlug
 from braunprices.infrastructure.persistence import tables
 from braunprices.infrastructure.persistence.mappers import (
@@ -225,6 +226,46 @@ class SqlPriceObservationRepository:
             query = query.where(tables.price_observations.c.observed_day <= until)
         rows = self._connection.execute(
             query.order_by(tables.price_observations.c.observed_at)
+        ).mappings()
+        return [row_to_observation(row) for row in rows]
+
+    def page_for_listing(
+        self,
+        listing_id: UUID,
+        *,
+        since: date | None = None,
+        until: date | None = None,
+        after: ObservationCursor | None = None,
+        limit: int = 100,
+    ) -> Sequence[PriceObservation]:
+        """Um troço do histórico desta referência, por instante crescente.
+
+        A comparação de tuplos é feita na base de dados e segue a mesma ordem do
+        ``ORDER BY``, o que deixa o índice ``(listing_id, observed_at)`` fazer o
+        trabalho: a página seguinte é uma procura, não uma contagem de linhas a saltar.
+        """
+        query = select(tables.price_observations).where(
+            tables.price_observations.c.listing_id == listing_id
+        )
+        if since is not None:
+            query = query.where(tables.price_observations.c.observed_day >= since)
+        if until is not None:
+            query = query.where(tables.price_observations.c.observed_day <= until)
+        if after is not None:
+            query = query.where(
+                tuple_(
+                    tables.price_observations.c.observed_at,
+                    tables.price_observations.c.price_amount,
+                    tables.price_observations.c.availability,
+                )
+                > (after.observed_at.instant, after.price.amount, after.availability.value)
+            )
+        rows = self._connection.execute(
+            query.order_by(
+                tables.price_observations.c.observed_at,
+                tables.price_observations.c.price_amount,
+                tables.price_observations.c.availability,
+            ).limit(limit)
         ).mappings()
         return [row_to_observation(row) for row in rows]
 

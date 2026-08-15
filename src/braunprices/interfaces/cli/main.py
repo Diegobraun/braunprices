@@ -11,6 +11,7 @@ from typing import Annotated
 from uuid import uuid4
 
 import typer
+import uvicorn
 
 from braunprices import __version__
 from braunprices.application.use_cases.collect_store_prices import StoreNotConfiguredError
@@ -84,6 +85,27 @@ def recolher(
     # para que o agendador ou a supervisão dêem por isso sem ninguém ler o output.
     if report.is_worth_investigating:
         raise typer.Exit(code=2)
+
+
+@app.command()
+def servir(
+    host: Annotated[str, typer.Option(help="Interface onde escutar.")] = "127.0.0.1",
+    porta: Annotated[int, typer.Option(help="Porto onde escutar.")] = 8000,
+    recarregar: Annotated[bool, typer.Option(help="Recarrega ao mudar o código.")] = False,
+) -> None:
+    """Levanta a API pública de leitura.
+
+    O host por omissão é local de propósito: expor uma porta à rede é uma decisão de
+    operação, e toma-se por escrito num ficheiro de serviço, não por omissão de um
+    comando. Em produção, atrás de um proxy. Ver `docs/operacao.md`.
+    """
+    uvicorn.run(
+        "braunprices.interfaces.api.app:app",
+        host=host,
+        port=porta,
+        reload=recarregar,
+        log_config=None,
+    )
 
 
 @app.command()

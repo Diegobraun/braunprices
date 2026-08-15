@@ -155,6 +155,49 @@ Os números que interessam ler:
 - **falhas por motivo** — `markup_missing` em massa é manutenção do adaptador;
   `blocked` é outra conversa.
 
+## A API de leitura
+
+```bash
+braunprices servir                      # 127.0.0.1:8000, documentação em /docs
+braunprices servir --host 0.0.0.0 --porta 8000
+```
+
+O host por omissão é local de propósito: expor uma porta à rede é uma decisão de
+operação, tomada por escrito num ficheiro de serviço, e não por omissão de um comando.
+Em produção corre atrás de um proxy, que trata de TLS e de servir a cache.
+
+`/saude` responde com a versão e com o estado da base de dados, e é por aí que a
+supervisão pergunta se o processo serve para alguma coisa. Um `200` com
+`"base_de_dados": false` significa que o processo está de pé e não consegue responder a
+nada de útil — trate-se como indisponível.
+
+As respostas trazem `Cache-Control: public, max-age=300` e `Last-Modified` com o instante
+do facto mais recente que contêm. Um proxy à frente reduz a carga sem que nada disso
+seja código deste projeto.
+
+### systemd
+
+`/etc/systemd/system/braunprices-api.service`:
+
+```ini
+[Unit]
+Description=API pública do BraunPrices
+After=network-online.target
+
+[Service]
+User=braunprices
+WorkingDirectory=/opt/braunprices
+EnvironmentFile=/etc/braunprices/env
+ExecStart=/opt/braunprices/.venv/bin/braunprices servir --host 127.0.0.1 --porta 8000
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
+```
+
+O contrato OpenAPI sai com `make openapi` e é o que qualquer cliente deve gerar a partir
+daqui — nunca escrito à mão do outro lado.
+
 ## Quando a loja diz que não
 
 Perante `403`, `429`, `451` ou uma parede de captcha, a passagem **para nessa loja** e

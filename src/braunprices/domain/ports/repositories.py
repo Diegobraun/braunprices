@@ -17,6 +17,7 @@ from braunprices.domain.model.price_observation import PriceObservation
 from braunprices.domain.model.product import Product, StoreListing
 from braunprices.domain.model.store import Store
 from braunprices.domain.value_objects.ean import EAN
+from braunprices.domain.value_objects.observation_cursor import ObservationCursor
 from braunprices.domain.value_objects.store_slug import StoreSlug
 
 
@@ -89,6 +90,23 @@ class PriceObservationRepository(Protocol):
         """Observações desta referência, por instante crescente.
 
         ``since`` e ``until`` são dias de Lisboa, ambos inclusivos.
+        """
+        ...
+
+    def page_for_listing(
+        self,
+        listing_id: UUID,
+        *,
+        since: date | None = None,
+        until: date | None = None,
+        after: ObservationCursor | None = None,
+        limit: int = 100,
+    ) -> Sequence[PriceObservation]:
+        """Um troço do histórico desta referência, por instante crescente.
+
+        A posição é o último facto lido (``after``) e não um deslocamento: num
+        histórico a que se acrescentam factos, paginar por ``OFFSET`` devolveria
+        repetições ou saltos sem nada o assinalar.
         """
         ...
 

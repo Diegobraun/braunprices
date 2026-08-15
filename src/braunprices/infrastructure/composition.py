@@ -9,6 +9,7 @@ from collections.abc import Callable, Sequence
 from dataclasses import dataclass
 
 import httpx
+from sqlalchemy import Engine
 
 from braunprices.application.use_cases.collect_store_prices import (
     CollectStorePrices,
@@ -44,6 +45,17 @@ class Container:
     settings: Settings
     unit_of_work: Callable[[], SqlUnitOfWork]
     http_client: CollectionHttpClient
+    engine: Engine | None = None
+
+    def close(self) -> None:
+        """Larga as ligações que este container abriu.
+
+        Um processo que corre um comando e sai não precisa disto; um servidor que
+        arranca e pára dentro do mesmo processo — como nos testes — precisa, ou deixa
+        pools abertos atrás de si.
+        """
+        if self.engine is not None:
+            self.engine.dispose()
 
     def scraper_for(self, store: Store) -> StoreScraper:
         """Devolve o adaptador desta loja."""
@@ -106,4 +118,5 @@ def build_container(settings: Settings) -> Container:
             rate_limiter=DomainRateLimiter(),
             http_client=http,
         ),
+        engine=engine,
     )

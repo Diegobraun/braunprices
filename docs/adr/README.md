@@ -16,6 +16,7 @@ como *substituído*.
 | [0008](0008-interpretacao-da-regra-dos-30-dias.md) | Interpretação da regra dos 30 dias e da redução progressiva | Proposto |
 | [0009](0009-sqlalchemy-core-em-vez-de-mappers-imperativos.md) | SQLAlchemy Core com tradução explícita | Aceite |
 | [0010](0010-passagem-diaria-como-processo-unico.md) | Passagem diária como processo único agendado por fora | Aceite |
+| [0011](0011-api-publica-de-leitura.md) | API pública: leitura anónima, paginação por posição, contrato verificado | Aceite |
 
 ## Template
 

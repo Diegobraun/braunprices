@@ -31,3 +31,4 @@ coverage.xml
 data/
 *.db
 *.sqlite3
+openapi.json

@@ -4,7 +4,7 @@ SHELL := /bin/bash
 UV := $(shell command -v uv 2>/dev/null)
 ARGS ?= --help
 
-.PHONY: help setup unhide-pth lint format typecheck arch test test-unit test-integration run clean
+.PHONY: help setup unhide-pth lint format typecheck arch test test-unit test-integration run serve openapi clean
 
 help: ## Mostra os alvos disponíveis
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) \
@@ -56,6 +56,14 @@ test-integration: guard-uv unhide-pth ## Integração com Postgres real (requer 
 
 run: guard-uv unhide-pth ## Executa a CLI de operação (make run ARGS="version")
 	uv run braunprices $(ARGS)
+
+serve: guard-uv unhide-pth ## Levanta a API pública em http://127.0.0.1:8000/docs
+	uv run braunprices servir --recarregar
+
+openapi: guard-uv unhide-pth ## Escreve o contrato OpenAPI em openapi.json
+	@uv run python -c "import json, sys; from braunprices.interfaces.api.app import create_app; \
+		json.dump(create_app().openapi(), sys.stdout, ensure_ascii=False, indent=2)" > openapi.json
+	@echo "openapi.json escrito."
 
 clean: ## Remove artefactos de build e caches
 	rm -rf .pytest_cache .ruff_cache .mypy_cache .import_linter_cache .coverage htmlcov dist build

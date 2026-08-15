@@ -40,12 +40,14 @@ braunprices = "braunprices.interfaces.cli.main:app"
 
 [dependency-groups]
 dev = [
+    "httpx2>=2.10.0",
     "import-linter>=2.1",
     "mypy>=1.14",
     "pre-commit>=4.0",
     "pytest>=8.3",
     "pytest-cov>=6.0",
     "ruff>=0.9",
+    "schemathesis>=4.24.3",
     "testcontainers[postgres]>=4.9",
 ]
 
@@ -160,7 +162,14 @@ markers = [
     "integration: usa infraestrutura real (Testcontainers)",
     "architecture: verifica a regra de dependência entre camadas",
 ]
-filterwarnings = ["error"]
+filterwarnings = [
+    "error",
+    # O transporte ASGI que o schemathesis usa larga os streams do anyio sem os fechar.
+    # É código de terceiros e o aviso não diz nada sobre este projeto; ficar em `error`
+    # transformaria os testes de contrato em ruído a cada corrida. Limitado ao aviso
+    # exato, para que qualquer outra ligação por fechar continue a rebentar a suite.
+    "ignore:Unclosed <MemoryObject:ResourceWarning",
+]
 
 [tool.coverage.run]
 branch = true

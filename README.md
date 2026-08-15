@@ -153,6 +153,52 @@ sai com código `2`, para que o agendador dê por isso sem ninguém ler o output
 Ver [`docs/operacao.md`](docs/operacao.md) para agendamento, códigos de saída e o que
 fazer perante um bloqueio.
 
+## A API de leitura
+
+Anónima e pública: os dados foram lidos de páginas públicas, e pôr uma chave à frente
+deles serviria sobretudo para saber quem lê — que é recolher dados de pessoas, coisa que
+este sistema não faz.
+
+```bash
+make serve            # http://127.0.0.1:8000/docs
+```
+
+| Rota | O que devolve |
+|---|---|
+| `GET /api/v1/lojas` | Lojas de que se recolhe, com o ritmo declarado |
+| `GET /api/v1/produtos?ean=` | Produto por código de barras — a chave de casamento entre lojas |
+| `GET /api/v1/produtos/{id}` | Produto e a última observação de cada referência |
+| `GET /api/v1/referencias/{id}/historico` | Histórico observado, paginado |
+| `GET /api/v1/referencias/{id}/preco-de-referencia` | A regra dos 30 dias aplicada a uma data |
+
+```json
+{
+  "janela": { "inicio": "2026-06-20", "fim_exclusivo": "2026-07-20", "dias": 30 },
+  "preco_de_referencia": { "montante": "99.67", "moeda": "EUR" },
+  "base_da_referencia": "before_progressive_reduction",
+  "mais_baixo_na_janela": { "montante": "79.90", "moeda": "EUR" },
+  "observacoes_consideradas": 4,
+  "ha_historico_suficiente": true
+}
+```
+
+A resposta traz **a base que a produziu**, e não só o número: aqui a série desceu sem
+interrupção e aplicou-se o n.º 5 do artigo, pelo que a referência é o preço anterior à
+primeira redução — e não o mais baixo já atingido. Um número sem a regra que o gerou não
+é verificável por quem o lê.
+
+Três decisões que noutro projeto seriam rotina, e aqui não são:
+
+- **Dinheiro é texto decimal, nunca número.** `59.99` em JSON é um `double` para quase
+  todos os leitores, e um cêntimo perdido num arredondamento é um facto errado publicado
+  sobre uma empresa identificada.
+- **Paginação por posição, não por deslocamento.** Num histórico a que se acrescentam
+  factos, `OFFSET` devolve repetições ou saltos sem nada o assinalar.
+- **O contrato é verificado, não afirmado.** O `schemathesis` lê o OpenAPI que o serviço
+  publica, gera pedidos a partir dele e valida as respostas.
+
+Ver [ADR-0011](docs/adr/0011-api-publica-de-leitura.md).
+
 ## Ética e âmbito da recolha
 
 Esta secção não é decorativa. É o que separa este projeto de um scraper qualquer.
@@ -195,8 +241,8 @@ produção (Fase 4) antes de qualquer coisa bonita.
 | 2 | Persistência (Postgres + Testcontainers) | ✅ concluída |
 | 3 | Primeiro scraper (JSON-LD) | ✅ concluída |
 | 4 | **Recolha diária em produção** | ✅ concluída |
-| 5 | API de leitura | ⏳ a seguir |
-| 6 | Segunda e terceira lojas, casamento por EAN | ⬜ |
+| 5 | API de leitura | ✅ concluída |
+| 6 | Segunda e terceira lojas, casamento por EAN | ⏳ a seguir |
 
 O gráfico de histórico de preços aparece aqui, acima da dobra, assim que a Fase 4 tiver
 acumulado dados reais para mostrar. Até lá seria uma imagem inventada, e este projeto não
@@ -206,8 +252,8 @@ publica números que não observou.
 
 Python 3.12+ · [`uv`](https://docs.astral.sh/uv/) · `httpx` · `selectolax` ·
 SQLAlchemy 2.0 + Alembic · PostgreSQL 16 · pydantic v2 (só nas bordas) · FastAPI ·
-`typer` · pytest + Testcontainers · `ruff` · `mypy --strict` · `import-linter` ·
-`pre-commit` · `structlog`
+`typer` · pytest + Testcontainers + schemathesis · `ruff` · `mypy --strict` ·
+`import-linter` · `pre-commit` · `structlog`
 
 Cada desvio a esta lista exige um ADR. As decisões estão em [`docs/adr/`](docs/adr/).
 
