@@ -1,0 +1,40 @@
+name: Bug
+description: Algo comporta-se de forma diferente do especificado
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Toda correção de bug entra acompanhada do teste que falhava antes da correção.
+        Se conseguires descrever o caso em termos de entrada e saída esperada, já
+        escreveste metade desse teste.
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: O que devia acontecer
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: O que acontece
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Como reproduzir
+      description: Comandos, dados de entrada, e a fixture de HTML envolvida se for de scraping.
+      render: shell
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: Versão ou commit
+    validations:
+      required: true

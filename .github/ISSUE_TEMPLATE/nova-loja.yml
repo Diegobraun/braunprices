@@ -1,0 +1,49 @@
+name: Nova loja
+description: Propor a recolha de preços numa loja online portuguesa
+labels: ["nova-loja"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Antes de propor, confirma que a recolha é compatível com a política do projeto:
+        respeitar o `robots.txt`, rate limit conservador, e **nunca** contornar bloqueios.
+        Se a loja bloqueia bots, a resposta correta é não recolher — não é contornar.
+
+  - type: input
+    id: store
+    attributes:
+      label: Nome da loja
+    validations:
+      required: true
+
+  - type: input
+    id: domain
+    attributes:
+      label: Domínio base
+      placeholder: exemplo.pt
+    validations:
+      required: true
+
+  - type: dropdown
+    id: robots
+    attributes:
+      label: O robots.txt permite as páginas de produto?
+      options: ["Sim", "Não", "Não verifiquei"]
+    validations:
+      required: true
+
+  - type: dropdown
+    id: jsonld
+    attributes:
+      label: As páginas de produto têm JSON-LD schema.org/Product?
+      options: ["Sim", "Não", "Parcialmente", "Não verifiquei"]
+    validations:
+      required: true
+
+  - type: textarea
+    id: sample
+    attributes:
+      label: URL de uma página de produto de exemplo
+      description: Será capturada como fixture de HTML, com a data de captura no nome.
+    validations:
+      required: true

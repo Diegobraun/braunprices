@@ -1,0 +1,211 @@
+[project]
+name = "braunprices"
+version = "0.1.0"
+description = "Rastreador de histórico de preços do retalho português (DL 109-G/2021)."
+readme = "README.md"
+requires-python = ">=3.12"
+license = "AGPL-3.0-or-later"
+license-files = ["LICENSE"]
+authors = [{ name = "Diego Braun" }]
+keywords = ["price-tracking", "omnibus", "portugal", "retail", "scraping"]
+classifiers = [
+    "Development Status :: 2 - Pre-Alpha",
+    "Intended Audience :: Developers",
+    "Natural Language :: Portuguese",
+    "Programming Language :: Python :: 3.12",
+    "Typing :: Typed",
+]
+
+dependencies = [
+    "alembic>=1.14",
+    "fastapi>=0.115",
+    "httpx>=0.28",
+    "psycopg[binary]>=3.2",
+    "pydantic>=2.10",
+    "pydantic-settings>=2.7",
+    "selectolax>=0.3.27",
+    "sqlalchemy>=2.0.36",
+    "structlog>=24.4",
+    "typer>=0.15",
+    "uvicorn[standard]>=0.34",
+]
+
+[project.urls]
+Homepage = "https://github.com/diegobraun/braunprices"
+Repository = "https://github.com/diegobraun/braunprices"
+Issues = "https://github.com/diegobraun/braunprices/issues"
+
+[project.scripts]
+braunprices = "braunprices.interfaces.cli.main:app"
+
+[dependency-groups]
+dev = [
+    "import-linter>=2.1",
+    "mypy>=1.14",
+    "pre-commit>=4.0",
+    "pytest>=8.3",
+    "pytest-cov>=6.0",
+    "ruff>=0.9",
+    "testcontainers[postgres]>=4.9",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/braunprices"]
+
+# --------------------------------------------------------------------------
+# ruff
+# --------------------------------------------------------------------------
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = [
+    "F",   # pyflakes
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "I",   # isort
+    "N",   # pep8-naming
+    "UP",  # pyupgrade
+    "B",   # bugbear
+    "A",   # builtins shadowing
+    "C4",  # comprehensions
+    "DTZ", # datetimes sem timezone
+    "T20", # print()
+    "PT",  # pytest style
+    "RET", # returns
+    "SIM", # simplify
+    "TID", # tidy imports
+    "PTH", # pathlib
+    "ERA", # código comentado (secção 2, regra 8)
+    "PL",  # pylint
+    "TRY", # tryceratops
+    "RUF",
+    "S",   # bandit
+    "ANN", # anotações de tipo obrigatórias
+    "D",   # docstrings
+    "ASYNC",
+]
+ignore = [
+    "D105", # docstring em método mágico
+    "D107", # docstring em __init__ (documenta-se a classe)
+    "D203", # conflita com D211
+    "D213", # conflita com D212
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = [
+    "S101",    # assert é o ponto do pytest
+    "D100",    # docstring de módulo
+    "D103",    # docstring de função
+    "PLR2004", # números mágicos em asserts são legíveis
+]
+"alembic/**" = ["D", "ANN", "ERA"]
+
+[tool.ruff.lint.pydocstyle]
+convention = "pep257"
+
+[tool.ruff.lint.flake8-tidy-imports]
+ban-relative-imports = "all"
+
+[tool.ruff.format]
+docstring-code-format = true
+
+# --------------------------------------------------------------------------
+# mypy
+# --------------------------------------------------------------------------
+[tool.mypy]
+python_version = "3.12"
+strict = true
+warn_unreachable = true
+warn_no_return = true
+disallow_any_unimported = true
+enable_error_code = [
+    "redundant-expr",
+    "possibly-undefined",
+    "truthy-bool",
+    "ignore-without-code",
+]
+files = ["src", "tests"]
+mypy_path = "src"
+
+# --------------------------------------------------------------------------
+# pytest
+# --------------------------------------------------------------------------
+[tool.pytest.ini_options]
+minversion = "8.0"
+testpaths = ["tests"]
+addopts = [
+    "--strict-markers",
+    "--strict-config",
+    "-ra",
+    "--import-mode=importlib",
+]
+markers = [
+    "unit: domínio puro, sem I/O",
+    "integration: usa infraestrutura real (Testcontainers)",
+    "architecture: verifica a regra de dependência entre camadas",
+]
+filterwarnings = ["error"]
+
+[tool.coverage.run]
+branch = true
+source = ["src/braunprices"]
+
+[tool.coverage.report]
+show_missing = true
+exclude_also = ["if TYPE_CHECKING:", "raise NotImplementedError", "\\.\\.\\."]
+
+# --------------------------------------------------------------------------
+# import-linter — a regra de dependência é verificada, não confiada
+# --------------------------------------------------------------------------
+[tool.importlinter]
+root_package = "braunprices"
+include_external_packages = true
+
+[[tool.importlinter.contracts]]
+name = "Camadas: interfaces -> infrastructure -> application -> domain"
+type = "layers"
+layers = [
+    "braunprices.interfaces",
+    "braunprices.infrastructure",
+    "braunprices.application",
+    "braunprices.domain",
+]
+
+[[tool.importlinter.contracts]]
+name = "O domínio não conhece tecnologia"
+type = "forbidden"
+source_modules = ["braunprices.domain"]
+forbidden_modules = [
+    "sqlalchemy",
+    "alembic",
+    "httpx",
+    "selectolax",
+    "pydantic",
+    "pydantic_settings",
+    "fastapi",
+    "typer",
+    "uvicorn",
+    "psycopg",
+]
+
+[[tool.importlinter.contracts]]
+name = "A aplicação não conhece detalhes de I/O"
+type = "forbidden"
+source_modules = ["braunprices.application"]
+forbidden_modules = [
+    "sqlalchemy",
+    "alembic",
+    "httpx",
+    "selectolax",
+    "fastapi",
+    "typer",
+    "uvicorn",
+    "psycopg",
+]

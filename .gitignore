@@ -1,0 +1,33 @@
+# Segredos — nunca versionados. Ver .env.example.
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+.venv/
+venv/
+
+# Ferramentas
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.import_linter_cache/
+.coverage
+.coverage.*
+htmlcov/
+coverage.xml
+
+# Editores / SO
+.idea/
+.vscode/
+.DS_Store
+
+# Dados recolhidos localmente (o histórico vive no Postgres, não no repositório)
+data/
+*.db
+*.sqlite3

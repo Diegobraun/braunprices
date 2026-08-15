@@ -1,0 +1,61 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  UV_FROZEN: "1"
+
+jobs:
+  quality:
+    name: Lint, tipos e arquitetura
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Instala o uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: Instala as dependências
+        run: uv sync --all-groups
+
+      - name: ruff (regras)
+        run: uv run ruff check --output-format=github .
+
+      - name: ruff (formatação)
+        run: uv run ruff format --check .
+
+      - name: mypy --strict
+        run: uv run mypy
+
+      - name: Contratos de arquitetura
+        run: uv run lint-imports
+
+  tests:
+    name: Testes
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Instala o uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: Instala as dependências
+        run: uv sync --all-groups
+
+      - name: pytest
+        run: uv run pytest --cov --cov-report=term-missing
