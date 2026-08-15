@@ -4,8 +4,13 @@ repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v6.0.0
     hooks:
+      # As fixtures são capturas byte a byte de páginas reais. Normalizar espaços ou
+      # acrescentar uma linha final tornaria-as uma versão arranjada do que a loja
+      # serviu — e o valor de uma fixture está precisamente em ser o original.
       - id: trailing-whitespace
+        exclude: ^tests/fixtures/
       - id: end-of-file-fixer
+        exclude: ^tests/fixtures/
       - id: check-yaml
       - id: check-toml
       - id: check-merge-conflict

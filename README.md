@@ -141,6 +141,14 @@ Esta secção não é decorativa. É o que separa este projeto de um scraper qua
 És responsável por um site e queres reportar um problema ou pedir exclusão?
 Ver [`SECURITY.md`](SECURITY.md) — resolve-se por lá, sem advogados.
 
+Isto não é uma declaração de intenções: cada uma destas regras tem teste. Um URL
+proibido nunca chega a ser pedido; um `robots.txt` ilegível interdita o domínio inteiro;
+um `Crawl-delay` declarado pela loja prevalece sobre o ritmo configurado; cada código de
+bloqueio produz **uma só** tentativa; e o user-agent nunca contém `Mozilla` nem `Chrome`.
+
+A Fnac.pt respondeu 403 ao próprio `robots.txt` durante a escolha da primeira loja. Foi
+descartada, não contornada. Ver [ADR-0006](docs/adr/0006-politica-de-recolha.md).
+
 ## Estado do projeto
 
 Em construção. O valor deste produto é proporcional ao histórico acumulado, e um dia sem
@@ -152,8 +160,8 @@ produção (Fase 4) antes de qualquer coisa bonita.
 | 0 | Esqueleto, CI, ferramentas | ✅ concluída |
 | 1 | Domínio puro e a regra dos 30 dias | ✅ concluída |
 | 2 | Persistência (Postgres + Testcontainers) | ✅ concluída |
-| 3 | Primeiro scraper (JSON-LD) | ⏳ a seguir |
-| 4 | **Recolha diária em produção** | ⬜ |
+| 3 | Primeiro scraper (JSON-LD) | ✅ concluída |
+| 4 | **Recolha diária em produção** | ⏳ a seguir |
 | 5 | API de leitura | ⬜ |
 | 6 | Segunda e terceira lojas, casamento por EAN | ⬜ |
 
