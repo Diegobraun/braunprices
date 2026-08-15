@@ -31,7 +31,9 @@ repos:
 
       - id: lint-imports
         name: contratos de arquitetura (import-linter)
-        entry: uv run lint-imports
+        # PYTHONPATH explícito: em macOS um .pth com a flag UF_HIDDEN é ignorado
+        # por site.addpackage() sem aviso, e o editable install fica inerte.
+        entry: env PYTHONPATH=src uv run lint-imports
         language: system
         pass_filenames: false
         types: [python]

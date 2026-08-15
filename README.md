@@ -73,18 +73,34 @@ make run ARGS=version  # a CLI de operação
 ## A regra dos 30 dias
 
 É a regra central do domínio, não um detalhe de relatório. Vive em
-`src/braunprices/domain/rules/`, é código puro sem qualquer I/O, e tem testes próprios
-para os casos onde uma implementação ingénua erra:
+`src/braunprices/domain/rules/`, é código puro sem qualquer I/O, e são **duas** funções
+porque a lei faz duas perguntas diferentes:
+
+```python
+lowest_price_in_window(observations, reference_date, window_days=30) -> Money | None
+```
+Qual foi o preço mais baixo praticado na janela. Um mínimo, e só isso.
+
+```python
+reference_price_for_announcement(...) -> ReferencePrice | None
+```
+Que número a loja tem de indicar ao anunciar a redução. Normalmente é o mínimo acima —
+mas quando a redução foi progressivamente aumentada, o n.º 5 do artigo manda usar o
+preço anterior à primeira redução, e não o mais baixo já atingido. O resultado traz
+consigo a base que o produziu, para que a resposta possa ser justificada e não apenas
+dada.
+
+Os casos onde uma implementação ingénua erra, todos com teste próprio:
 
 - janela sem observações → devolve "sem dados", nunca zero;
 - buracos na série → o histórico é discreto, não se interpolam valores que ninguém viu;
 - produto sem stock → não conta como preço praticado;
-- **descida gradual e ininterrupta** → o preço de referência é o anterior à primeira
-  redução, não o mais baixo da janela (n.º 5 do artigo — é aqui que a maioria das
-  implementações falha);
-- janela que já inclui promoções → conta na mesma; a lei é explícita nisso.
+- **descida gradual e ininterrupta** → referência é o preço antes da primeira redução;
+- janela que já inclui promoções → conta na mesma; a lei é explícita nisso;
+- fronteira de dia em `Europe/Lisbon`, incluindo as noites de mudança de hora.
 
-Fuso horário fixado em `Europe/Lisbon`, com a fronteira de dia testada.
+O raciocínio completo, com o que é redação legal e o que é interpretação deste projeto,
+está em [ADR-0008](docs/adr/0008-interpretacao-da-regra-dos-30-dias.md).
 
 ## Ética e âmbito da recolha
 
@@ -116,8 +132,8 @@ produção (Fase 4) antes de qualquer coisa bonita.
 | Fase | O que entrega | Estado |
 |---|---|---|
 | 0 | Esqueleto, CI, ferramentas | ✅ concluída |
-| 1 | Domínio puro e a regra dos 30 dias | ⏳ a seguir |
-| 2 | Persistência (Postgres + Testcontainers) | ⬜ |
+| 1 | Domínio puro e a regra dos 30 dias | ✅ concluída |
+| 2 | Persistência (Postgres + Testcontainers) | ⏳ a seguir |
 | 3 | Primeiro scraper (JSON-LD) | ⬜ |
 | 4 | **Recolha diária em produção** | ⬜ |
 | 5 | API de leitura | ⬜ |

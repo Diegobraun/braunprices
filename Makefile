@@ -4,7 +4,7 @@ SHELL := /bin/bash
 UV := $(shell command -v uv 2>/dev/null)
 ARGS ?= --help
 
-.PHONY: help setup lint format typecheck arch test test-unit test-integration run clean
+.PHONY: help setup unhide-pth lint format typecheck arch test test-unit test-integration run clean
 
 help: ## Mostra os alvos disponíveis
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) \
@@ -17,33 +17,44 @@ endif
 
 setup: guard-uv ## Cria o ambiente e instala tudo (runtime + dev + hooks)
 	uv sync --all-groups
+	$(MAKE) --no-print-directory unhide-pth
 	uv run pre-commit install
 
-lint: guard-uv ## ruff (regras + formatação) e contratos de arquitetura
+unhide-pth: ## Limpa a flag UF_HIDDEN dos .pth do venv (só macOS)
+# Em macOS, um .pth com a flag UF_HIDDEN é ignorado por site.addpackage() sem
+# qualquer aviso, e o editable install fica inerte: `import braunprices` falha
+# com o pacote aparentemente instalado. Repor a flag é idempotente e barato.
+ifeq ($(shell uname), Darwin)
+	@if [ -d .venv/lib ]; then \
+		find .venv/lib -name '*.pth' -exec chflags nohidden {} + 2>/dev/null || true; \
+	fi
+endif
+
+lint: guard-uv unhide-pth ## ruff (regras + formatação) e contratos de arquitetura
 	uv run ruff check .
 	uv run ruff format --check .
 	uv run lint-imports
 
-format: guard-uv ## Aplica a formatação e os fixes automáticos
+format: guard-uv unhide-pth ## Aplica a formatação e os fixes automáticos
 	uv run ruff check --fix .
 	uv run ruff format .
 
-typecheck: guard-uv ## mypy --strict
+typecheck: guard-uv unhide-pth ## mypy --strict
 	uv run mypy
 
-arch: guard-uv ## Só os contratos de dependência entre camadas
+arch: guard-uv unhide-pth ## Só os contratos de dependência entre camadas
 	uv run lint-imports
 
-test: guard-uv ## Toda a suite
+test: guard-uv unhide-pth ## Toda a suite
 	uv run pytest
 
-test-unit: guard-uv ## Só o domínio puro (sem I/O, sem Docker)
+test-unit: guard-uv unhide-pth ## Só o domínio puro (sem I/O, sem Docker)
 	uv run pytest -m unit
 
-test-integration: guard-uv ## Integração com Postgres real (requer Docker a correr)
+test-integration: guard-uv unhide-pth ## Integração com Postgres real (requer Docker a correr)
 	uv run pytest -m integration
 
-run: guard-uv ## Executa a CLI de operação (make run ARGS="version")
+run: guard-uv unhide-pth ## Executa a CLI de operação (make run ARGS="version")
 	uv run braunprices $(ARGS)
 
 clean: ## Remove artefactos de build e caches

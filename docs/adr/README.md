@@ -13,6 +13,7 @@ como *substituído*.
 | [0005](0005-ean-como-chave-de-casamento.md) | EAN como chave de casamento entre lojas | Por escrever (Fase 6) |
 | [0006](0006-politica-de-recolha.md) | Política de recolha: robots.txt, rate limit, sem contorno de bloqueios | Por escrever (Fase 3) |
 | [0007](0007-licenciamento-de-codigo-e-de-dados.md) | Licenciamento de código e de dados | Proposto |
+| [0008](0008-interpretacao-da-regra-dos-30-dias.md) | Interpretação da regra dos 30 dias e da redução progressiva | Proposto |
 
 ## Template
 

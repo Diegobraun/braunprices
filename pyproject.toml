@@ -96,6 +96,11 @@ ignore = [
     "D107", # docstring em __init__ (documenta-se a classe)
     "D203", # conflita com D211
     "D213", # conflita com D212
+    # Mensagens longas fora da classe de exceção. Aqui são deliberadas: o valor deste
+    # sistema é diagnóstico, e um erro que diz "EAN inválido" custa mais tempo do que
+    # poupa. A alternativa seria uma classe por variante de mensagem, o que multiplica
+    # tipos sem acrescentar informação.
+    "TRY003",
 ]
 
 [tool.ruff.lint.per-file-ignores]
@@ -140,6 +145,10 @@ mypy_path = "src"
 [tool.pytest.ini_options]
 minversion = "8.0"
 testpaths = ["tests"]
+# src no caminho de importação, independentemente do editable install. Em macOS um
+# .pth com a flag UF_HIDDEN é ignorado por site.addpackage() sem aviso nenhum, e a
+# suite deixaria de correr por uma razão que não tem nada a ver com o código.
+pythonpath = ["src"]
 addopts = [
     "--strict-markers",
     "--strict-config",
@@ -159,7 +168,15 @@ source = ["src/braunprices"]
 
 [tool.coverage.report]
 show_missing = true
-exclude_also = ["if TYPE_CHECKING:", "raise NotImplementedError", "\\.\\.\\."]
+# O número não é o objetivo — um teste de fachada sobe a percentagem sem provar nada.
+# O limiar existe como rede: uma queda súbita significa que entrou código sem teste.
+fail_under = 95
+exclude_also = [
+    "if TYPE_CHECKING:",
+    "raise NotImplementedError",
+    "\\.\\.\\.",
+    'if __name__ == "__main__":',
+]
 
 # --------------------------------------------------------------------------
 # import-linter — a regra de dependência é verificada, não confiada
