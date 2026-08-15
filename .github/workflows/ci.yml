@@ -21,7 +21,7 @@ jobs:
     name: Lint, tipos e arquitetura
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Instala o uv
         uses: astral-sh/setup-uv@v5
@@ -47,7 +47,7 @@ jobs:
     name: Testes de unidade e arquitetura
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Instala o uv
         uses: astral-sh/setup-uv@v5
@@ -64,7 +64,7 @@ jobs:
     name: Suite completa com Postgres real
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Instala o uv
         uses: astral-sh/setup-uv@v5
