@@ -176,6 +176,9 @@ exclude_also = [
     "raise NotImplementedError",
     "\\.\\.\\.",
     'if __name__ == "__main__":',
+    # Protocols são contrato, não código: o corpo é `...` e nunca corre. Medi-los
+    # daria uma percentagem que desce sempre que se documenta melhor um porto.
+    "class .*\\(Protocol\\):",
 ]
 
 # --------------------------------------------------------------------------

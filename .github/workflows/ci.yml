@@ -43,8 +43,8 @@ jobs:
       - name: Contratos de arquitetura
         run: uv run lint-imports
 
-  tests:
-    name: Testes
+  unit-tests:
+    name: Testes de unidade e arquitetura
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
@@ -57,5 +57,29 @@ jobs:
       - name: Instala as dependências
         run: uv sync --all-groups
 
-      - name: pytest
+      - name: pytest (sem infraestrutura)
+        run: uv run pytest -m "not integration"
+
+  full-tests:
+    name: Suite completa com Postgres real
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Instala o uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: Instala as dependências
+        run: uv sync --all-groups
+
+      # O Postgres é levantado pelos Testcontainers, e não por um `services:` do
+      # workflow. É deliberado: assim a mesma suite corre igual na máquina de quem
+      # desenvolve e aqui, em vez de haver dois caminhos que divergem em silêncio.
+      # O runner do Ubuntu já traz o Docker.
+      # Corre a suite inteira, e não apenas os testes marcados como de integração:
+      # o limiar de cobertura só tem significado sobre o conjunto todo, e medi-lo
+      # sobre metade dos testes daria um número que não quer dizer nada.
+      - name: pytest (tudo, com cobertura)
         run: uv run pytest --cov --cov-report=term-missing

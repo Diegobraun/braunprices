@@ -102,6 +102,24 @@ Os casos onde uma implementação ingénua erra, todos com teste próprio:
 O raciocínio completo, com o que é redação legal e o que é interpretação deste projeto,
 está em [ADR-0008](docs/adr/0008-interpretacao-da-regra-dos-30-dias.md).
 
+## O histórico não se edita, nem por acidente
+
+`price_observations` é append-only, e não por convenção. A base de dados tem um trigger
+que recusa `UPDATE` e `DELETE`, com uma mensagem que explica o que fazer em vez disso:
+
+```
+ERROR:  price_observations e append-only: UPDATE nao e permitido. Uma observacao errada
+        corrige-se registando outro facto, nunca sobrescrevendo o original.
+```
+
+As chaves estrangeiras são `ON DELETE RESTRICT`, o que fecha a porta lateral de apagar
+uma referência de loja para levar o histórico atrás. O repositório de observações não
+expõe `update` nem `delete` — a ausência é a interface.
+
+Os testes de integração correm contra PostgreSQL 16 a sério, em Testcontainers, com as
+migrações do Alembic aplicadas. Sem mocks: um duplo concordaria com qualquer coisa que
+se lhe pedisse.
+
 ## Ética e âmbito da recolha
 
 Esta secção não é decorativa. É o que separa este projeto de um scraper qualquer.
@@ -133,8 +151,8 @@ produção (Fase 4) antes de qualquer coisa bonita.
 |---|---|---|
 | 0 | Esqueleto, CI, ferramentas | ✅ concluída |
 | 1 | Domínio puro e a regra dos 30 dias | ✅ concluída |
-| 2 | Persistência (Postgres + Testcontainers) | ⏳ a seguir |
-| 3 | Primeiro scraper (JSON-LD) | ⬜ |
+| 2 | Persistência (Postgres + Testcontainers) | ✅ concluída |
+| 3 | Primeiro scraper (JSON-LD) | ⏳ a seguir |
 | 4 | **Recolha diária em produção** | ⬜ |
 | 5 | API de leitura | ⬜ |
 | 6 | Segunda e terceira lojas, casamento por EAN | ⬜ |
