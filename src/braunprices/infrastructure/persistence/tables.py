@@ -139,3 +139,61 @@ Index(
     price_observations.c.listing_id,
     price_observations.c.observed_at.desc(),
 )
+
+
+# --------------------------------------------------------------------------
+# Observabilidade da recolha
+#
+# Os relatos são guardados, e não apenas registados num log. Uma degradação silenciosa
+# reconhece-se ao comparar hoje com a semana passada, e para isso a semana passada tem
+# de continuar a existir em sítio consultável.
+# --------------------------------------------------------------------------
+
+collection_runs = Table(
+    "collection_runs",
+    metadata,
+    Column("run_id", postgresql.UUID(as_uuid=True), primary_key=True),
+    Column(
+        "store_slug", String(50), ForeignKey("stores.slug", ondelete="RESTRICT"), nullable=False
+    ),
+    Column("started_at", DateTime(timezone=True), nullable=False),
+    Column("finished_at", DateTime(timezone=True), nullable=True),
+    Column("listings_planned", Integer, nullable=False),
+    Column("pages_fetched", Integer, nullable=False),
+    Column("observations_recorded", Integer, nullable=False),
+    Column("prices_changed", Integer, nullable=False),
+    Column("observations_from_json_ld", Integer, nullable=False),
+    Column("observations_from_html_fallback", Integer, nullable=False),
+    Column("stopped_early_because", Text, nullable=True),
+)
+
+collection_failures = Table(
+    "collection_failures",
+    metadata,
+    Column("failure_id", postgresql.UUID(as_uuid=True), primary_key=True),
+    Column(
+        "run_id",
+        postgresql.UUID(as_uuid=True),
+        ForeignKey("collection_runs.run_id", ondelete="CASCADE"),
+        nullable=False,
+    ),
+    Column("listing_id", postgresql.UUID(as_uuid=True), nullable=False),
+    Column("url", Text, nullable=False),
+    Column("reason", String(40), nullable=False),
+    Column("detail", Text, nullable=False),
+    Column("http_status", Integer, nullable=True),
+)
+
+# A pergunta que o painel faz primeiro é "como correu a última passagem desta loja".
+Index(
+    "ix_collection_runs_store_slug_started_at",
+    collection_runs.c.store_slug,
+    collection_runs.c.started_at.desc(),
+)
+
+# E a seguir: "que falhas houve nesta passagem, agrupadas por padrão".
+Index(
+    "ix_collection_failures_run_id_reason",
+    collection_failures.c.run_id,
+    collection_failures.c.reason,
+)

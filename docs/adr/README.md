@@ -15,6 +15,7 @@ como *substituído*.
 | [0007](0007-licenciamento-de-codigo-e-de-dados.md) | Licenciamento de código e de dados | Proposto |
 | [0008](0008-interpretacao-da-regra-dos-30-dias.md) | Interpretação da regra dos 30 dias e da redução progressiva | Proposto |
 | [0009](0009-sqlalchemy-core-em-vez-de-mappers-imperativos.md) | SQLAlchemy Core com tradução explícita | Aceite |
+| [0010](0010-passagem-diaria-como-processo-unico.md) | Passagem diária como processo único agendado por fora | Aceite |
 
 ## Template
 

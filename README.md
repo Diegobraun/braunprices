@@ -120,6 +120,39 @@ Os testes de integração correm contra PostgreSQL 16 a sério, em Testcontainer
 migrações do Alembic aplicadas. Sem mocks: um duplo concordaria com qualquer coisa que
 se lhe pedisse.
 
+## A recolha diária
+
+Um processo por passagem: arranca, percorre as referências ativas de uma loja, grava, e
+sai. O agendamento vive fora — cron ou um temporizador do systemd — e não num agendador
+interno, que seria mais um processo a ter de estar de pé para o dia acontecer.
+
+```bash
+braunprices lojas registar worten --nome Worten --dominio www.worten.pt
+braunprices referencias adicionar worten https://www.worten.pt/... --referencia 5513302 --nome "Tinteiro HP 971"
+braunprices recolher worten
+braunprices estado worten
+```
+
+Três propriedades moldam o desenho, e cada uma tem teste contra Postgres real:
+
+- **Idempotente.** Correr duas vezes no mesmo dia não duplica nem corrompe — a garantia
+  está na chave natural do facto na base de dados, não na memória do processo. Repetir
+  uma passagem interrompida a meio é seguro, e é o procedimento correto.
+- **Grava ao longo do caminho.** Uma passagem a milhares de páginas demora horas; guardar
+  tudo para o fim perderia tudo ao ser interrompida. O que já foi observado fica gravado.
+- **Para quando a loja diz que não.** Um bloqueio não é uma falha de uma página: é a loja
+  a travar quem está a pedir.
+
+Cada passagem deixa um relato guardado — páginas, falhas por motivo, preços alterados,
+quantas observações vieram do recurso ao HTML em vez do JSON-LD. Esse último número é o
+que denuncia o modo de falha mais caro deste sistema: uma loja que muda de marcação
+continua a devolver preços, a recolha continua verde, e o histórico envenena-se durante
+semanas sem ninguém dar por nada. Quando uma passagem merece ser investigada, o comando
+sai com código `2`, para que o agendador dê por isso sem ninguém ler o output.
+
+Ver [`docs/operacao.md`](docs/operacao.md) para agendamento, códigos de saída e o que
+fazer perante um bloqueio.
+
 ## Ética e âmbito da recolha
 
 Esta secção não é decorativa. É o que separa este projeto de um scraper qualquer.
@@ -161,8 +194,8 @@ produção (Fase 4) antes de qualquer coisa bonita.
 | 1 | Domínio puro e a regra dos 30 dias | ✅ concluída |
 | 2 | Persistência (Postgres + Testcontainers) | ✅ concluída |
 | 3 | Primeiro scraper (JSON-LD) | ✅ concluída |
-| 4 | **Recolha diária em produção** | ⏳ a seguir |
-| 5 | API de leitura | ⬜ |
+| 4 | **Recolha diária em produção** | ✅ concluída |
+| 5 | API de leitura | ⏳ a seguir |
 | 6 | Segunda e terceira lojas, casamento por EAN | ⬜ |
 
 O gráfico de histórico de preços aparece aqui, acima da dobra, assim que a Fase 4 tiver

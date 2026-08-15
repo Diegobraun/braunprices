@@ -65,6 +65,16 @@ class CollectionHttpClient:
         self._rate_limiter = rate_limiter
         self._http = http_client
 
+    @property
+    def user_agent(self) -> str:
+        """A identificação que vai em cada pedido.
+
+        Legível de fora para que a montagem possa ser verificada: uma regra que só
+        existe dentro deste ficheiro perde-se no dia em que alguém monte o cliente com
+        outra coisa.
+        """
+        return self._user_agent
+
     def get(self, url: str, policy: RateLimitPolicy) -> FetchedPage | ScrapeFailure:
         """Obtém uma página, ou explica por que não a obteve."""
         decision = self._robots.is_allowed(url)
