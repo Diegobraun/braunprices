@@ -167,7 +167,7 @@ requires-dist = [
     { name = "sqlalchemy", specifier = ">=2.0.36" },
     { name = "structlog", specifier = ">=24.4" },
     { name = "typer", specifier = ">=0.15" },
-    { name = "uvicorn", extras = ["standard"], specifier = ">=0.34" },
+    { name = "uvicorn", extras = ["standard"], specifier = ">=0.52.3" },
 ]
 
 [package.metadata.requires-dev]
