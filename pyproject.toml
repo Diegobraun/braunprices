@@ -27,7 +27,7 @@ dependencies = [
     "sqlalchemy>=2.0.36",
     "structlog>=24.4",
     "typer>=0.15",
-    "uvicorn[standard]>=0.34",
+    "uvicorn[standard]>=0.52.3",
 ]
 
 [project.urls]
